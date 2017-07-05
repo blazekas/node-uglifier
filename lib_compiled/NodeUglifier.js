@@ -110,6 +110,8 @@
     };
 
     NodeUglifier.prototype.merge = function() {
+      function getPosition(str, m, i) { return str.split(m, i).join(m).length; }      
+        
       var _this, depGraph, edgeToRemove, error, filteredOutFilesWithExport, firstLine, iter, me, r, recursiveSourceGrabber, wasCycle;
       _this = this;
       firstLine = "var " + this.wrappedSourceContainerName + "=[];";
@@ -199,7 +201,15 @@
             replacement = _this.getRequireSubstitutionForMerge(otherSerial);
             r.sourceMapModules[_this.getSourceContainer(otherSerial)] = path.relative(path.dirname(_this.mainFileAbs), requireStatement.path);
           }
-          sourceObj.sourceMod = packageUtils.replaceRequireStatement(sourceObj.sourceMod, requireStatement.text, replacement);
+          //console.log('%s ---> %s', requireStatement.text.substring(0, getPosition(requireStatement.text, '(', 2)) , replacement);
+          //sourceObj.sourceMod = packageUtils.replaceRequireStatement(sourceObj.sourceMod, requireStatement.text, replacement);
+		  
+		  // Do not thow away () -
+		  // var app = require('./config/express')(db);
+		  // ----->
+		  // var app = cachedModules[4816].exports;
+		  
+          sourceObj.sourceMod = packageUtils.replaceRequireStatement(sourceObj.sourceMod, requireStatement.text.substring(0, getPosition(requireStatement.text, '(', 2)), replacement);
         }
         if (isSourceObjFilteredWithExport || isSourceObjFiltered) {
           if (isSourceObjFiltered) {
